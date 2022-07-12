@@ -62,7 +62,7 @@ fn newton_divide_array_by_array(operand_a []u32, operand_b []u32, mut quotient [
 }
 
 [inline]
-fn bit_length(a Integer) int {
+pub fn bit_length(a Integer) int {
 	return a.digits.len * 32 - bits.leading_zeros_32(a.digits.last())
 }
 
@@ -210,20 +210,20 @@ fn subtract_in_place(mut a []u32, b []u32) {
 	mut carry := u32(0)
 	mut new_carry := u32(0)
 	for index in 0 .. min {
-		if a[index] < (b[index] + carry) {
-			new_carry = 1
+		new_carry = if a[index] < (b[index] + carry) {
+			u32(1)
 		} else {
-			new_carry = 0
+			u32(0)
 		}
 		a[index] -= (b[index] + carry)
 		carry = new_carry
 	}
 	if len_a >= len_b {
 		for index in min .. max {
-			if a[index] < carry {
-				new_carry = 1
+			new_carry = if a[index] < carry {
+				u32(1)
 			} else {
-				new_carry = 0
+				u32(0)
 			}
 			a[index] -= carry
 			carry = new_carry
