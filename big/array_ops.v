@@ -118,7 +118,6 @@ const karatsuba_multiplication_limit = 10_000
 fn multiply_digit_array(operand_a []u32, operand_b []u32, mut storage []u32) {
 	if operand_a.len >= big.karatsuba_multiplication_limit
 		|| operand_b.len >= big.karatsuba_multiplication_limit {
-		// println('Hit')
 		karatsuba_multiply_digit_array(operand_a, operand_b, mut storage)
 	} else {
 		simple_multiply_digit_array(operand_a, operand_b, mut storage)
