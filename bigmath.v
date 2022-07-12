@@ -5,12 +5,13 @@ import crypto.sha1
 import rand
 
 fn main() {
+	// zm := _000
 	zs := 20_000
 
-	rand.seed([u32(123), 319])
+	rand.seed([u32(314981), 1397])
 
 	for _ in 0 .. 20 {
-		x, y := rand.intn(zs)?, rand.intn(zs)?
+		x, y := zs, zs
 		z := x + y
 
 		a1, a2 := rand.int_in_range(1, 101)?, rand.int_in_range(1, 101)?
@@ -21,7 +22,7 @@ fn main() {
 		c := b1 * b2
 		c_str := c.str()
 		assert c_str == (a1 * a2).str() + '0'.repeat(z)
-		println(sha1.hexhash(c_str))
+		println(sha1.hexhash(c_str) + ' ' + (c.bit_len() / 32).str())
 	}
 	// values := [
 	// 	// [
