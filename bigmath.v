@@ -6,7 +6,7 @@ import rand
 
 fn main() {
 	// zm := _000
-	zs := 20_000
+	zs := 25_000
 
 	rand.seed([u32(314981), 1397])
 
