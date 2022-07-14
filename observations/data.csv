@@ -1,8 +1,19 @@
-Name,Size,Runs,Mean,Stdev,Min,Max
-Simple Multiplication Algorithm,20000,10,11.071,0.251,10.749,11.595
-Simple Multiplication Algorithm,25000,10,17.201,0.301,16.787,17.684
-Simple Multiplication Algorithm,30000,10,24.759,0.687,23.717,25.611
-Simple Multiplication Algorithm,35000,10,32.797,0.602,31.671,33.623
-Simple Multiplication Algorithm,40000,10,42.898,0.997,40.981,44.385
-Simple Multiplication Algorithm,45000,10,54.598,1.154,52.720,56.895
-Simple Multiplication Algorithm,50000,10,66.195,2.060,64.425,71.544
+Name,"Size (in decimal digits)","Karatsuba Threshold","Toom3 Threshold","Runs (in hyperfine)","Mean (all times in s)",Stdev,Min,Max
+Simple,"20000","-","-","10","11.071",0.251,10.749,11.595
+Simple,"25000","-","-","10","17.201",0.301,16.787,17.684
+Simple,"30000","-","-","10","24.759",0.687,23.717,25.611
+Simple,"35000","-","-","10","32.797",0.602,31.671,33.623
+Simple,"40000","-","-","10","42.898",0.997,40.981,44.385
+Simple,"45000","-","-","10","54.598",1.154,52.720,56.895
+Simple,"50000","-","-","10","66.195",2.060,64.425,71.544
+Simple + Karatsuba,"20000","64","-","10","10.724",0.252,10.247,11.167
+Simple + Karatsuba,"20000","128","-","10","10.692",0.190,10.382,11.069
+Simple + Karatsuba,"20000","256","-","10","10.778",0.148,10.560,11.032
+Simple + Karatsuba,"20000","512","-","10","10.832",0.192,10.581,11.121
+Simple + Karatsuba,"20000","1024","-","10","10.813",0.197,10.620,11.275
+Simple + Karatsuba,"20000","2048","-","10","10.818",0.194,10.454,11.034
+Simple + Karatsuba,"20000","3072","-","10","10.879",0.140,10.713,11.061
+Simple + Karatsuba,"25000","64","-","10","16.655",0.243,16.310,17.007
+Simple + Karatsuba,"25000","128","-","10","16.761",0.317,16.215,17.254
+Simple + Karatsuba,"25000","256","-","10","16.532",0.250,16.140,16.976
+
