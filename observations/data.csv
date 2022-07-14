@@ -1,0 +1,8 @@
+Name,Size,Runs,Mean,Stdev,Min,Max
+Simple Multiplication Algorithm,20000,10,11.071,0.251,10.749,11.595
+Simple Multiplication Algorithm,25000,10,17.201,0.301,16.787,17.684
+Simple Multiplication Algorithm,30000,10,24.759,0.687,23.717,25.611
+Simple Multiplication Algorithm,35000,10,32.797,0.602,31.671,33.623
+Simple Multiplication Algorithm,40000,10,42.898,0.997,40.981,44.385
+Simple Multiplication Algorithm,45000,10,54.598,1.154,52.720,56.895
+Simple Multiplication Algorithm,50000,10,66.195,2.060,64.425,71.544
