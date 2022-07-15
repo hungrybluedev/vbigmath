@@ -6,11 +6,11 @@ import rand
 
 fn main() {
 	// zm := _000
-	zs := 25_000
+	zs := $env('DIGITS').int()
 
 	rand.seed([u32(314981), 1397])
 
-	for _ in 0 .. 20 {
+	for _ in 0 .. 10 {
 		x, y := zs, zs
 		z := x + y
 
