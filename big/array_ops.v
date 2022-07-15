@@ -110,7 +110,7 @@ fn subtract_digit_array(operand_a []u32, operand_b []u32, mut storage []u32) {
 	shrink_tail_zeros(mut storage)
 }
 
-const karatsuba_multiplication_limit = $env("KLIM").int()
+const karatsuba_multiplication_limit = $env('KLIM').int()
 
 // const toom3_multiplication_limit = 4096
 
