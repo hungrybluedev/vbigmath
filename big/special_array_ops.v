@@ -113,9 +113,6 @@ fn karatsuba_multiply_digit_array(operand_a []u32, operand_b []u32, mut storage 
 
 	// thanks to the base cases we can pass zero-length arrays to the mult func
 	half := math.max(operand_a.len, operand_b.len) / 2
-	if half <= 0 {
-		panic('Unreachable. Both array have 1 length and multiply_array_by_digit should have been called')
-	}
 	a_l := operand_a[0..half]
 	a_h := operand_a[half..]
 	mut b_l := []u32{}
