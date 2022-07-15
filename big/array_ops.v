@@ -110,9 +110,9 @@ fn subtract_digit_array(operand_a []u32, operand_b []u32, mut storage []u32) {
 	shrink_tail_zeros(mut storage)
 }
 
-const karatsuba_multiplication_limit = 1024
+const karatsuba_multiplication_limit = $env("KLIM").int()
 
-const toom3_multiplication_limit = 4096
+// const toom3_multiplication_limit = 4096
 
 // set limit to choose algorithm
 
@@ -123,10 +123,10 @@ fn multiply_digit_array(operand_a []u32, operand_b []u32, mut storage []u32) {
 	} else {
 		operand_b.len
 	}
-	if max_len >= big.toom3_multiplication_limit {
-		toom3_multiply_digit_array(operand_a, operand_b, mut storage)
-	} else if max_len >= big.karatsuba_multiplication_limit {
-		// if max_len >= big.karatsuba_multiplication_limit {
+	// if max_len >= big.toom3_multiplication_limit {
+	// 	toom3_multiply_digit_array(operand_a, operand_b, mut storage)
+	// } else if max_len >= big.karatsuba_multiplication_limit {
+	if max_len >= big.karatsuba_multiplication_limit {
 		karatsuba_multiply_digit_array(operand_a, operand_b, mut storage)
 	} else {
 		simple_multiply_digit_array(operand_a, operand_b, mut storage)
