@@ -162,6 +162,10 @@ fn toom3_multiply_digit_array(operand_a []u32, operand_b []u32, mut storage []u3
 	k := (operand_a.len + 2) / 3
 	k2 := 2 * k
 
+	// The pieces of the calculation need to be worked on as proper big.Integers
+	// because the intermediate results can be negative. After recombination, the
+	// corrent result will be positive.
+
 	// Slices of a and b
 	a0 := Integer{
 		digits: operand_a[0..k]
@@ -210,28 +214,31 @@ fn toom3_multiply_digit_array(operand_a []u32, operand_b []u32, mut storage []u3
 		}
 	}
 
-	v0 := a0 * b0
-	mut atemp := a2 + a0
-	mut btemp := b2 + b0
-	vm1 := (atemp - a1) * (btemp - b1)
-	atemp += a1
-	btemp += b1
-	v1 := atemp * btemp
-	v2 := ((atemp + a2).lshift(1) - a0) * ((btemp + b2).lshift(1) - b0)
-	vinf := a2 * b2
+	// https://en.wikipedia.org/wiki/Toom%E2%80%93Cook_multiplication#Details
+	// DOI: 10.1007/978-3-540-73074-3_10
 
-	mut t2 := (v2 - vm1) / three_int
-	mut tm1 := (v1 - vm1).rshift(1)
-	mut t1 := v1 - v0
+	p0 := a0 * b0
+	mut ptemp := a2 + a0
+	mut qtemp := b2 + b0
+	vm1 := (ptemp - a1) * (qtemp - b1)
+	ptemp += a1
+	qtemp += b1
+	p1 := ptemp * qtemp
+	p2 := ((ptemp + a2).lshift(1) - a0) * ((qtemp + b2).lshift(1) - b0)
+	pinf := a2 * b2
+
+	mut t2 := (p2 - vm1) / three_int
+	mut tm1 := (p1 - vm1).rshift(1)
+	mut t1 := p1 - p0
 	t2 = (t2 - t1).rshift(1)
-	t1 = (t1 - tm1 - vinf)
-	t2 = t2 - vinf.lshift(1)
+	t1 = (t1 - tm1 - pinf)
+	t2 = t2 - pinf.lshift(1)
 	tm1 = tm1 - t2
 
 	// shift amount
-	s := u32(k * 32)
+	s := u32(k) << 5
 
-	result := (((vinf.lshift(s) + t2).lshift(s) + t1).lshift(s) + tm1).lshift(s) + v0
+	result := (((pinf.lshift(s) + t2).lshift(s) + t1).lshift(s) + tm1).lshift(s) + p0
 
 	storage = unsafe { result.digits }
 }
