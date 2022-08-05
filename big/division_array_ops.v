@@ -145,3 +145,157 @@ fn rshift_in_place(mut a []u32, n u32) {
 fn left_align_p(a u32, b u32) bool {
 	return bits.leading_zeros_32(a) == bits.leading_zeros_32(b)
 }
+
+// implementation of the Burnikel-Ziegler algorithm for recursive division
+fn bnzg_divide_by_array(operand_a []u32, operand_b []u32, mut quotient []u32, mut remainder []u32) {
+	r := operand_a.len
+	s := operand_b.len
+
+	m := 1 << bits.len_32(u32(s / burnikel_zeigler_division_limit))
+
+	j := (s + m - 1) / m
+	n := j * m
+	dump(j)
+	dump(n)
+
+	n32 := m * 32
+	len_diff := n32 - array_bit_length(operand_b)
+	mut sigma := if len_diff > 0 { u32(len_diff) } else { u32(0) }
+	mut sigma_copy := sigma
+
+	sdiv := int(sigma / 32)
+	mut a_shifted := []u32{len: r + sdiv}
+	mut b_shifted := []u32{len: s + sdiv}
+
+	for sigma >= 32 {
+		a_shifted << 0
+		b_shifted << 0
+		sigma -= 32
+	}
+
+	shift_digits_left(operand_b, sigma, mut b_shifted)
+	shift_digits_left(operand_a, sigma, mut a_shifted)
+
+	mut t := (array_bit_length(a_shifted) + n32) / n32
+	if t < 2 {
+		t = 2
+	}
+
+	dump(t)
+	dump(a_shifted.len)
+
+	mut z := get_array_block(a_shifted, t - 2, n)
+	mut qi := []u32{cap: n}
+	mut ri := []u32{cap: n}
+
+	dump(z.len)
+
+	for i := t - 2; i > 0; i-- {
+		qi.clear()
+		ri.clear()
+
+		bnzg_2n_1n(z, b_shifted, mut qi, mut ri, n)
+
+		z = ri.clone()
+		z << a_shifted[i - 1..i]
+		lshift_digits_in_place(mut qi, i * n)
+		add_in_place(mut quotient, qi)
+	}
+
+	bnzg_2n_1n(z, b_shifted, mut qi, mut ri, n)
+	add_in_place(mut quotient, qi)
+
+	digit_offset := int(sigma_copy >> 5)
+	rshift_digits_in_place(mut ri, digit_offset)
+	remainder = []u32{len: ri.len}
+	shift_digits_right(ri, (sigma_copy & 31), mut remainder)
+}
+
+fn get_array_block(a []u32, index int, start int, size int) []u32 {
+	end_guess := start + size
+	end := if end_guess > a.len { a.len } else { end_guess }
+
+	return a[start..end]
+}
+
+fn bnzg_2n_1n(operand_a []u32, operand_b []u32, mut quotient []u32, mut remainder []u32, n int) {
+	// When n is odd or the operands are small, use simple division algorithm
+	if n & 1 == 1 || n < burnikel_zeigler_division_limit {
+		binary_divide_array_by_array(operand_a, operand_b, mut quotient, mut remainder)
+		return
+	}
+
+	half := n >> 1
+	n2 := n * 2
+
+	a_upper := operand_a[half..]
+	a_lower := operand_a[0..half]
+
+	mut q0 := []u32{cap: n2}
+	mut r0 := []u32{cap: n2}
+
+	bnzg_3n_2n(a_upper, operand_b, mut q0, mut r0, n)
+
+	mut a_new := []u32{cap: a_lower.len + r0.len}
+	for digit in a_lower {
+		a_new << digit
+	}
+	for digit in r0 {
+		a_new << digit
+	}
+
+	mut q1 := []u32{cap: n2}
+
+	bnzg_3n_2n(a_new, operand_b, mut q1, mut remainder, n)
+}
+
+fn bnzg_3n_2n(operand_a []u32, operand_b []u32, mut quotient []u32, mut remainder []u32, n int) {
+	n2 := n * 2
+	n3 := n * 3
+
+	a12 := operand_a[n..]
+	a1 := operand_a[n2..]
+	a3 := operand_a[0..n]
+
+	b2 := operand_b[..n]
+	b1 := operand_b[n..]
+
+	cmp_result := compare_digit_array(a1, b1)
+
+	mut r1 := []u32{cap: n}
+
+	if cmp_result < 0 {
+		bnzg_2n_1n(a12, b1, mut quotient, mut r1, n)
+	} else {
+		for _ in 0 .. n {
+			quotient << 0xFFFFFFFF
+		}
+		mut sb := []u32{len: n}
+		for digit in b1 {
+			sb << digit
+		}
+		for _ in 0 .. n2 {
+			r1 << 0
+		}
+		subtract_digit_array(a12, sb, mut r1)
+		add_in_place(mut r1, b1)
+	}
+
+	mut d := []u32{len: n3}
+	multiply_digit_array(quotient, b2, mut d)
+
+	mut rhat := []u32{len: n2}
+	for digit in a3 {
+		rhat << digit
+	}
+	for digit in r1 {
+		rhat << digit
+	}
+
+	for compare_digit_array(rhat, d) < 0 {
+		add_in_place(mut rhat, operand_b)
+		subtract_in_place(mut quotient, [u32(1)])
+	}
+
+	subtract_digit_array(rhat, d, mut remainder)
+}

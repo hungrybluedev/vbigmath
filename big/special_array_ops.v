@@ -41,6 +41,7 @@ fn newton_divide_array_by_array(operand_a []u32, operand_b []u32, mut quotient [
 	for lastx != x { // main loop
 		lastx = x
 		x = (x * (pow2_k_plus_1 - (x * b))).rshift(u32(k))
+		println((x - lastx).abs() < integer_from_int(1000))
 	}
 	if x * b < pow2(k) {
 		x.inc()
@@ -63,7 +64,15 @@ fn newton_divide_array_by_array(operand_a []u32, operand_b []u32, mut quotient [
 
 [inline]
 pub fn bit_length(a Integer) int {
-	return a.digits.len * 32 - bits.leading_zeros_32(a.digits.last())
+	return array_bit_length(a.digits)
+}
+
+[inline]
+pub fn array_bit_length(a []u32) int {
+	if a.len == 0 {
+		return 0
+	}
+	return a.len * 32 - bits.leading_zeros_32(a.last())
 }
 
 [direct_array_access; inline]
@@ -240,7 +249,7 @@ fn toom3_multiply_digit_array(operand_a []u32, operand_b []u32, mut storage []u3
 
 	result := (((pinf.lshift(s) + t2).lshift(s) + t1).lshift(s) + tm1).lshift(s) + p0
 
-	storage = unsafe { result.digits }
+	storage = result.digits
 }
 
 [inline]
