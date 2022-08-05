@@ -1,0 +1,6 @@
+Name,"Size (in decimal digits)","Newton Threshold","BZ Threshold","Runs (in hyperfine)","Mean (all times in s)",Stdev,Min,Max
+Simple,20000,-,-,10,22.519,0.301,22.010,22.851
+Simple,25000,-,-,10,34.794,0.447,34.195,35.460
+Simple,30000,-,-,10,49.954,0.743,48.771,51.383
+Simple,35000,-,-,10,67.252,0.978,65.870,68.742
+
