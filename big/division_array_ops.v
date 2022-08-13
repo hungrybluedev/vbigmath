@@ -157,7 +157,6 @@ fn bnzg_divide_by_array(operand_a []u32, operand_b []u32, mut quotient []u32, mu
 	n := j * m
 	dump(j)
 	dump(n)
-
 	n32 := m * 32
 	len_diff := n32 - array_bit_length(operand_b)
 	mut sigma := if len_diff > 0 { u32(len_diff) } else { u32(0) }
@@ -183,13 +182,11 @@ fn bnzg_divide_by_array(operand_a []u32, operand_b []u32, mut quotient []u32, mu
 
 	dump(t)
 	dump(a_shifted.len)
-
 	mut z := get_array_block(a_shifted, t - 2, n)
 	mut qi := []u32{cap: n}
 	mut ri := []u32{cap: n}
 
 	dump(z.len)
-
 	for i := t - 2; i > 0; i-- {
 		qi.clear()
 		ri.clear()
@@ -211,8 +208,13 @@ fn bnzg_divide_by_array(operand_a []u32, operand_b []u32, mut quotient []u32, mu
 	shift_digits_right(ri, (sigma_copy & 31), mut remainder)
 }
 
-fn get_array_block(a []u32, index int, start int, size int) []u32 {
-	end_guess := start + size
+fn get_array_block(a []u32, index int, size int) []u32 {
+	start := index * size
+	if start >= a.len {
+		return []u32{}
+	}
+
+	end_guess := (index + 1) * size
 	end := if end_guess > a.len { a.len } else { end_guess }
 
 	return a[start..end]
