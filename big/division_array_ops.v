@@ -151,13 +151,18 @@ fn bnzg_divide_by_array(operand_a []u32, operand_b []u32, mut quotient []u32, mu
 	r := operand_a.len
 	s := operand_b.len
 
+	if r < s {
+		quotient.clear()
+		remainder << operand_a
+		shrink_tail_zeros(mut remainder)
+		return
+	}
+
 	m := 1 << bits.len_32(u32(s / burnikel_zeigler_division_limit))
 
 	j := (s + m - 1) / m
 	n := j * m
-	dump(j)
-	dump(n)
-	n32 := m * 32
+	n32 := n * 32
 	len_diff := n32 - array_bit_length(operand_b)
 	mut sigma := if len_diff > 0 { u32(len_diff) } else { u32(0) }
 	mut sigma_copy := sigma
@@ -179,55 +184,71 @@ fn bnzg_divide_by_array(operand_a []u32, operand_b []u32, mut quotient []u32, mu
 	if t < 2 {
 		t = 2
 	}
+	mut a1 := get_array_block(a_shifted, t - 1, t, n)
+	mut a2 := get_array_block(a_shifted, t - 2, t, n)
 
-	dump(t)
-	dump(a_shifted.len)
-	mut z := get_array_block(a_shifted, t - 2, n)
-	mut qi := []u32{cap: n}
-	mut ri := []u32{cap: n}
+	mut z := []u32{cap: n * 2}
+	for digit in a2 {
+		z << digit
+	}
+	z << a1
+	mut qi := []u32{cap: t}
+	mut ri := []u32{cap: t}
 
-	dump(z.len)
 	for i := t - 2; i > 0; i-- {
 		qi.clear()
 		ri.clear()
 
-		bnzg_2n_1n(z, b_shifted, mut qi, mut ri, n)
+		bnzg_2n_1n(z, b_shifted, mut qi, mut ri)
 
-		z = ri.clone()
-		z << a_shifted[i - 1..i]
+		z = get_array_block(a_shifted, i - 1, t, n)
+		z << ri
+
 		lshift_digits_in_place(mut qi, i * n)
 		add_in_place(mut quotient, qi)
 	}
 
-	bnzg_2n_1n(z, b_shifted, mut qi, mut ri, n)
+	bnzg_2n_1n(z, b_shifted, mut qi, mut ri)
 	add_in_place(mut quotient, qi)
+	shrink_tail_zeros(mut quotient)
 
 	digit_offset := int(sigma_copy >> 5)
 	rshift_digits_in_place(mut ri, digit_offset)
 	remainder = []u32{len: ri.len}
 	shift_digits_right(ri, (sigma_copy & 31), mut remainder)
+	shrink_tail_zeros(mut remainder)
 }
 
-fn get_array_block(a []u32, index int, size int) []u32 {
+fn get_array_block(a []u32, index int, t int, size int) []u32 {
 	start := index * size
 	if start >= a.len {
-		return []u32{}
+		return []u32{len: size, init: 0}
 	}
 
-	end_guess := (index + 1) * size
-	end := if end_guess > a.len { a.len } else { end_guess }
+	mut end := if index == t - 1 { a.len } else { (index + 1) * size }
+	if end > a.len {
+		return []u32{len: size, init: 0}
+	}
 
 	return a[start..end]
 }
 
-fn bnzg_2n_1n(operand_a []u32, operand_b []u32, mut quotient []u32, mut remainder []u32, n int) {
+fn bnzg_2n_1n(operand_a []u32, operand_b []u32, mut quotient []u32, mut remainder []u32) {
+	// if operand_a.len < operand_b.len {
+	// 	quotient.clear()
+	// 	remainder << operand_a
+	// 	shrink_tail_zeros(mut remainder)
+	// 	return
+	// }
+
+	n := operand_b.len
 	// When n is odd or the operands are small, use simple division algorithm
 	if n & 1 == 1 || n < burnikel_zeigler_division_limit {
-		binary_divide_array_by_array(operand_a, operand_b, mut quotient, mut remainder)
+		divide_array_by_array(operand_a, operand_b, mut quotient, mut remainder)
 		return
 	}
 
-	half := n >> 1
+	half := n / 2
 	n2 := n * 2
 
 	a_upper := operand_a[half..]
@@ -236,7 +257,8 @@ fn bnzg_2n_1n(operand_a []u32, operand_b []u32, mut quotient []u32, mut remainde
 	mut q0 := []u32{cap: n2}
 	mut r0 := []u32{cap: n2}
 
-	bnzg_3n_2n(a_upper, operand_b, mut q0, mut r0, n)
+	bnzg_3n_2n(a_upper, operand_b, mut q0, mut r0)
+	
 
 	mut a_new := []u32{cap: a_lower.len + r0.len}
 	for digit in a_lower {
@@ -248,10 +270,20 @@ fn bnzg_2n_1n(operand_a []u32, operand_b []u32, mut quotient []u32, mut remainde
 
 	mut q1 := []u32{cap: n2}
 
-	bnzg_3n_2n(a_new, operand_b, mut q1, mut remainder, n)
+	bnzg_3n_2n(a_new, operand_b, mut q1, mut remainder)
 }
 
-fn bnzg_3n_2n(operand_a []u32, operand_b []u32, mut quotient []u32, mut remainder []u32, n int) {
+fn bnzg_3n_2n(operand_a []u32, operand_b []u32, mut quotient []u32, mut remainder []u32) {
+	if operand_a.len < operand_b.len {
+		dump(operand_a.len)
+		dump(operand_b.len)
+		// quotient.clear()
+		// remainder << operand_a
+		// shrink_tail_zeros(mut remainder)
+		// return
+	}
+
+	n := operand_b.len / 2
 	n2 := n * 2
 	n3 := n * 3
 
@@ -267,7 +299,7 @@ fn bnzg_3n_2n(operand_a []u32, operand_b []u32, mut quotient []u32, mut remainde
 	mut r1 := []u32{cap: n}
 
 	if cmp_result < 0 {
-		bnzg_2n_1n(a12, b1, mut quotient, mut r1, n)
+		bnzg_2n_1n(a12, b1, mut quotient, mut r1)
 	} else {
 		for _ in 0 .. n {
 			quotient << 0xFFFFFFFF

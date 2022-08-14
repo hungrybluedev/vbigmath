@@ -249,16 +249,26 @@ fn divide_array_by_digit(operand_a []u32, divisor u32, mut quotient []u32, mut r
 	shrink_tail_zeros(mut remainder)
 }
 
-const newton_division_limit = $env('NLIM').int()
+// const newton_division_limit = $env('NLIM').int()
 
 const burnikel_zeigler_division_limit = $env('BLIM').int()
 
 [inline]
 fn divide_array_by_array(operand_a []u32, operand_b []u32, mut quotient []u32, mut remainder []u32) {
-	if operand_a.len >= big.burnikel_zeigler_division_limit {
-		bnzg_divide_by_array(operand_a, operand_b, mut quotient, mut remainder)
-	} else {
+	digit_difference := operand_a.len - operand_b.len
+	if digit_difference < 0 {
+		quotient.clear()
+		for digit in operand_a {
+			remainder << digit
+		}
+		shrink_tail_zeros(mut remainder)
+		return
+	}
+	if digit_difference < big.burnikel_zeigler_division_limit
+		|| operand_b.len < big.burnikel_zeigler_division_limit {
 		binary_divide_array_by_array(operand_a, operand_b, mut quotient, mut remainder)
+	} else {
+		bnzg_divide_by_array(operand_a, operand_b, mut quotient, mut remainder)
 	}
 }
 
